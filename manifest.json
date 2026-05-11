@@ -1,0 +1,16 @@
+{
+  "name": "Футбольные счета LIVE",
+  "short_name": "Футбол LIVE",
+  "description": "Реальные счета футбольных матчей в реальном времени",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1a1a2e",
+  "background_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/44/44701.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
