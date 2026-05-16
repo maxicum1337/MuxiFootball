@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
     <title>MUXI FOOT ⚡ Реальные матчи LIVE</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -113,10 +114,33 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
-            font-weight: bold;
-            font-size: 15px;
+            gap: 10px;
         }
-        .team { flex: 1; text-align: center; }
+        .team {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            padding: 5px;
+        }
+        .team-name {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .vs {
+            font-size: 12px;
+            opacity: 0.5;
+            font-weight: normal;
+        }
         .score { font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 8px; }
         .status {
             text-align: center;
@@ -319,7 +343,6 @@
         
         async function fetchRealMatches() {
             try {
-                // Получаем сегодняшние матчи
                 const today = new Date().toISOString().split('T')[0];
                 const response = await fetch(`https://v3.football.api-sports.io/fixtures?date=${today}`, {
                     method: 'GET',
@@ -341,8 +364,11 @@
                 return matches.slice(0, 25).map(m => ({
                     id: m.fixture.id,
                     league: m.league.name,
+                    leagueLogo: m.league.logo,
                     home: m.teams.home.name,
+                    homeLogo: m.teams.home.logo,
                     away: m.teams.away.name,
+                    awayLogo: m.teams.away.logo,
                     homeScore: m.goals.home ?? 0,
                     awayScore: m.goals.away ?? 0,
                     status: m.fixture.status.short,
@@ -391,8 +417,15 @@
                     <div class="match-card">
                         <div class="league">${match.league}</div>
                         <div class="teams">
-                            <div class="team">${match.home}</div>
-                            <div class="team">${match.away}</div>
+                            <div class="team">
+                                <img class="team-logo" src="${match.homeLogo}" alt="${match.home}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/44/44701.png'">
+                                <div class="team-name">${match.home}</div>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="team">
+                                <img class="team-logo" src="${match.awayLogo}" alt="${match.away}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/44/44701.png'">
+                                <div class="team-name">${match.away}</div>
+                            </div>
                         </div>
                         <div class="score">${match.homeScore} : ${match.awayScore}</div>
                         <div class="status ${isLive ? 'status-live' : ''}">${statusText}</div>
@@ -563,4 +596,5 @@
         setInterval(loadMatches, 60000);
     </script>
 </body>
+</html>
 </html>
