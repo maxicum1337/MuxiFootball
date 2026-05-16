@@ -108,12 +108,12 @@
         </div>
         <div class="daily-bonus" onclick="claimDailyBonus()">🎁 Ежедневный бонус: +50 монет</div>
         <div class="tabs"><button class="tab-btn active" data-tab="matches">🏆 МАТЧИ</button><button class="tab-btn" data-tab="leaderboard">🏅 ЛИДЕРБОРД</button><button class="tab-btn" data-tab="history">📜 ИСТОРИЯ</button></div>
-        <div id="matchesTab" class="tab-content active"><div id="matchesList"><div class="loader"><div class="spinner"></div><div>Загрузка топ-лиг...</div></div></div></div>
+        <div id="matchesTab" class="tab-content active"><div id="matchesList"><div class="loader"><div class="spinner"></div><div>Загрузка матчей...</div></div></div></div>
         <div id="leaderboardTab" class="tab-content"><div id="leaderboardList"><div class="loader">Нет данных</div></div></div>
         <div id="historyTab" class="tab-content"><div id="historyList"><div class="loader">Нет ставок</div></div></div>
         <div class="instruction-card"><div class="instruction-title" onclick="toggleInstruction()">📱 Как добавить иконку на главный экран? <span id="instructionArrow">▼</span></div>
         <div class="instruction-content" id="instructionContent"><div class="browser-item">🌐 Chrome: ⋮ → Установить приложение</div><div class="browser-item">🍎 Safari: ⬆️ → На экран "Домой"</div></div></div>
-        <div class="footer">⚡ MUXI FOOT — АПЛ, Бундеслига, Ла Лига, РПЛ, ЛЧ | Валюта игровая</div>
+        <div class="footer">⚡ MUXI FOOT — АПЛ, Бундеслига, Ла Лига, РПЛ, ЛЧ | Сезон 2026</div>
     </div>
     <div id="betModal" class="modal"><div class="modal-content"><h3 id="betMatchName"></h3><p>Ставка на: <strong id="betTeam"></strong></p><p>Коэффициент: <strong id="betOdd">2.00</strong></p><input type="number" id="betAmount" placeholder="Сумма ставки" min="10"><div class="modal-buttons"><button class="confirm-btn" onclick="placeBet()">Сделать ставку</button><button class="cancel-btn" onclick="closeModal()">Отмена</button></div></div></div>
     <script>
@@ -121,7 +121,6 @@
         
         // ID топ-лиг для точного поиска
         const TOP_LEAGUES = [39, 78, 140, 135, 61, 235, 2, 3];
-        // 39=АПЛ, 78=Бундеслига, 140=Ла Лига, 135=Серия А, 61=Лига 1, 235=РПЛ, 2=ЛЧ, 3=ЛЕ
         
         let balance = 1000, bets = [], currentMatches = [], selectedBet = null;
         
@@ -138,10 +137,10 @@
                 const today = new Date().toISOString().split('T')[0];
                 let allMatches = [];
                 
-                // Запрашиваем каждую топ-лигу отдельно
+                // Запрашиваем каждую топ-лигу отдельно с сезоном 2026
                 for (const leagueId of TOP_LEAGUES) {
                     try {
-                        const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2024&date=${today}`, {
+                        const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2026&date=${today}`, {
                             headers: { 
                                 'x-rapidapi-key': API_KEY, 
                                 'x-rapidapi-host': 'v3.football.api-sports.io' 
@@ -156,12 +155,12 @@
                     }
                 }
                 
+                // Если сегодня нет матчей, пробуем завтра
                 if (allMatches.length === 0) {
-                    // Если нет матчей сегодня, пробуем завтрашний день
                     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
                     for (const leagueId of TOP_LEAGUES) {
                         try {
-                            const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2024&date=${tomorrow}`, {
+                            const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2026&date=${tomorrow}`, {
                                 headers: { 'x-rapidapi-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io' }
                             });
                             const data = await response.json();
