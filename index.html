@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- ========================================== -->
+    <!-- ТВОЙ ЛОГОТИП (вкладка браузера и иконка) -->
+    <!-- ========================================== -->
+    <link rel="icon" type="image/jpeg" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
+    <link rel="apple-touch-icon" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
+    <link rel="shortcut icon" type="image/jpeg" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
+    
     <title>MUXI FOOT ⚡ Реальные матчи</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,12 +46,10 @@
         .logo-img {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--gold), var(--accent));
+            background-image: url('487c910b-10a6-476c-b3f5-1a5763471a6c.jpg');
+            background-size: cover;
+            background-position: center;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
         }
         .logo-text {
             font-size: 24px;
@@ -103,7 +109,10 @@
 <body data-theme="dark">
     <div class="container">
         <div class="header">
-            <div class="logo-area"><div class="logo-img">⚽</div><div class="logo-text">MUXI FOOT</div></div>
+            <div class="logo-area">
+                <div class="logo-img"></div>
+                <div class="logo-text">MUXI FOOT</div>
+            </div>
             <div class="theme-switch"><button class="theme-btn" data-theme="dark">🌙</button><button class="theme-btn" data-theme="light">☀️</button><button class="theme-btn" data-theme="blue">🔵</button></div>
             <div class="balance-card">🪙 <span class="balance-amount" id="balance">1000</span></div>
         </div>
