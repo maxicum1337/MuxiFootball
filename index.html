@@ -3,55 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>MUXI FOOT ⚡ Топ-лиги LIVE</title>
+    <title>MUXI FOOT ⚡ Реальные матчи</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg: #0a0a1a;
-            --card: #16213e;
-            --accent: #e94560;
-            --gold: #f39c12;
-            --green: #27ae60;
-            --text: #fff;
-        }
+        :root { --bg: #0a0a1a; --card: #16213e; --accent: #e94560; --gold: #f39c12; --green: #27ae60; --text: #fff; }
         body[data-theme="light"] { --bg: #f0f2f5; --card: #ffffff; --text: #1a1a2e; }
-        body[data-theme="blue"] { --bg: linear-gradient(135deg, #0f0c29, #302b63, #24243e); --card: rgba(255,255,255,0.1); --text: #fff; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 16px;
-            padding-bottom: 80px;
-            transition: 0.3s;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 80px; transition: 0.3s; }
         .container { max-width: 700px; margin: 0 auto; }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
         .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .logo-img {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--gold), var(--accent));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-        .logo-text {
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(135deg, var(--gold), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+        .logo-img { width: 48px; height: 48px; background: linear-gradient(135deg, var(--gold), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .logo-text { font-size: 24px; font-weight: bold; background: linear-gradient(135deg, var(--gold), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .theme-switch { display: flex; gap: 6px; background: var(--card); padding: 5px; border-radius: 30px; }
         .theme-btn { padding: 6px 12px; border: none; border-radius: 25px; cursor: pointer; background: transparent; color: var(--text); }
         .theme-btn.active { background: var(--accent); color: white; }
@@ -85,7 +47,7 @@
         .instruction-title { font-size: 16px; display: flex; justify-content: space-between; cursor: pointer; }
         .instruction-content { display: none; margin-top: 12px; }
         .instruction-content.show { display: block; }
-        .browser-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+        .browser-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 10px; margin-bottom: 8px; font-size: 13px; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .loader { text-align: center; padding: 40px; }
         .spinner { border: 3px solid rgba(128,128,128,0.3); border-top: 3px solid var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
@@ -113,10 +75,13 @@
         <div id="historyTab" class="tab-content"><div id="historyList"><div class="loader">Нет ставок</div></div></div>
         <div class="instruction-card"><div class="instruction-title" onclick="toggleInstruction()">📱 Как добавить иконку на главный экран? <span id="instructionArrow">▼</span></div>
         <div class="instruction-content" id="instructionContent"><div class="browser-item">🌐 Chrome: ⋮ → Установить приложение</div><div class="browser-item">🍎 Safari: ⬆️ → На экран "Домой"</div></div></div>
-        <div class="footer">⚡ MUXI FOOT — АПЛ, Бундеслига, Ла Лига, РПЛ, ЛЧ | Сезон 2026</div>
+        <div class="footer">⚡ MUXI FOOT — реальные матчи | Данные API-Football</div>
     </div>
     <div id="betModal" class="modal"><div class="modal-content"><h3 id="betMatchName"></h3><p>Ставка на: <strong id="betTeam"></strong></p><p>Коэффициент: <strong id="betOdd">2.00</strong></p><input type="number" id="betAmount" placeholder="Сумма ставки" min="10"><div class="modal-buttons"><button class="confirm-btn" onclick="placeBet()">Сделать ставку</button><button class="cancel-btn" onclick="closeModal()">Отмена</button></div></div></div>
     <script>
+        // ============================================
+        // ТВОЙ КЛЮЧ (ПРЯМОЙ ДОСТУП, НЕ RAPIDAPI)
+        // ============================================
         const API_KEY = "a37a2f707d7f37fb28ce4451dcf42064";
         
         // ID топ-лиг для точного поиска
@@ -137,31 +102,31 @@
                 const today = new Date().toISOString().split('T')[0];
                 let allMatches = [];
                 
-                // Запрашиваем каждую топ-лигу отдельно с сезоном 2026
+                // ПРАВИЛЬНЫЙ ЗАГОЛОВОК для api-football.com
                 for (const leagueId of TOP_LEAGUES) {
                     try {
-                        const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2026&date=${today}`, {
-                            headers: { 
-                                'x-rapidapi-key': API_KEY, 
-                                'x-rapidapi-host': 'v3.football.api-sports.io' 
-                            }
+                        const url = `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2026&date=${today}`;
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: { 'x-apisports-key': API_KEY }
                         });
+                        
                         const data = await response.json();
                         if (data.response && data.response.length > 0) {
                             allMatches = [...allMatches, ...data.response];
                         }
                     } catch(e) {
-                        console.log(`Ошибка загрузки лиги ${leagueId}`);
+                        console.log(`Ошибка лиги ${leagueId}:`, e);
                     }
                 }
                 
-                // Если сегодня нет матчей, пробуем завтра
                 if (allMatches.length === 0) {
                     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
                     for (const leagueId of TOP_LEAGUES) {
                         try {
-                            const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2026&date=${tomorrow}`, {
-                                headers: { 'x-rapidapi-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io' }
+                            const url = `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2026&date=${tomorrow}`;
+                            const response = await fetch(url, {
+                                headers: { 'x-apisports-key': API_KEY }
                             });
                             const data = await response.json();
                             if (data.response && data.response.length > 0) {
@@ -192,10 +157,10 @@
         
         async function loadMatches() {
             const container = document.getElementById('matchesList');
-            container.innerHTML = '<div class="loader"><div class="spinner"></div><div>Загрузка матчей топ-лиг...</div></div>';
+            container.innerHTML = '<div class="loader"><div class="spinner"></div><div>Загрузка матчей...</div></div>';
             currentMatches = await fetchRealMatches();
             if(!currentMatches.length) { 
-                container.innerHTML = '<div class="loader">⚠️ Сегодня матчей топ-лиг нет. Попробуй завтра!</div>'; 
+                container.innerHTML = '<div class="loader">⚠️ Сегодня матчей нет. Попробуй завтра!</div>'; 
                 return; 
             }
             container.innerHTML = currentMatches.map(m => { 
