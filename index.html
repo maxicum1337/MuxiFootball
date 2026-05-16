@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>MUXI FOOT ⚡ Футбол LIVE</title>
+    <meta name="theme-color" content="#1a1a2e">
+    <title>MUXI FOOT ⚡ Реальные матчи</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -14,11 +15,8 @@
             --green: #27ae60;
             --text: #fff;
         }
-        body[data-theme="light"] {
-            --bg: #f0f2f5;
-            --card: #ffffff;
-            --text: #1a1a2e;
-        }
+        body[data-theme="light"] { --bg: #f0f2f5; --card: #ffffff; --text: #1a1a2e; }
+        body[data-theme="blue"] { --bg: linear-gradient(135deg, #0f0c29, #302b63, #24243e); --card: rgba(255,255,255,0.1); --text: #fff; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
@@ -58,43 +56,213 @@
         .theme-switch { display: flex; gap: 6px; background: var(--card); padding: 5px; border-radius: 30px; }
         .theme-btn { padding: 6px 12px; border: none; border-radius: 25px; cursor: pointer; background: transparent; color: var(--text); }
         .theme-btn.active { background: var(--accent); color: white; }
-        .balance-card {
-            background: var(--card);
-            padding: 8px 18px;
-            border-radius: 40px;
-            border: 1px solid var(--gold);
-        }
+        .balance-card { background: var(--card); padding: 8px 18px; border-radius: 40px; border: 1px solid var(--gold); }
         .balance-amount { font-size: 22px; font-weight: bold; color: var(--gold); }
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: var(--card);
-            border: 1px solid rgba(128,128,128,0.3);
-            border-radius: 30px;
-            color: var(--text);
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .tab-btn { flex: 1; padding: 12px; background: var(--card); border: 1px solid rgba(128,128,128,0.3); border-radius: 30px; color: var(--text); cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: var(--accent); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .match-card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(128,128,128,0.3);
-        }
+        .match-card { background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(128,128,128,0.3); }
         .league { font-size: 11px; opacity: 0.7; margin-bottom: 8px; }
-        .teams {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            gap: 10px;
+        .teams { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
+        .team { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .team-logo { width: 36px; height: 36px; object-fit: contain; background: rgba(255,255,255,0.1); border-radius: 50%; padding: 4px; }
+        .team-name { font-size: 12px; font-weight: bold; }
+        .vs { font-size: 12px; opacity: 0.5; }
+        .score { font-size: 28px; font-weight: bold; text-align: center; margin: 10px 0; }
+        .status { text-align: center; font-size: 12px; padding: 4px; border-radius: 20px; margin-bottom: 12px; }
+        .status-live { background: var(--accent); animation: pulse 1s infinite; }
+        .odds { display: flex; gap: 8px; }
+        .odd-btn { flex: 1; background: rgba(128,128,128,0.2); border: none; padding: 10px; border-radius: 30px; color: var(--text); cursor: pointer; font-weight: bold; font-size: 12px; }
+        .odd-btn:hover { background: var(--green); }
+        .bet-info { font-size: 11px; text-align: center; color: var(--gold); margin-top: 10px; }
+        .leaderboard-item, .history-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; border: 1px solid rgba(128,128,128,0.3); }
+        .history-win { border-left: 4px solid var(--green); }
+        .history-loss { border-left: 4px solid var(--accent); }
+        .history-pending { border-left: 4px solid var(--gold); }
+        .daily-bonus { background: linear-gradient(135deg, var(--gold), var(--accent)); padding: 12px; border-radius: 40px; text-align: center; margin-bottom: 20px; cursor: pointer; font-weight: bold; color: white; }
+        .instruction-card { background: var(--card); border-radius: 20px; padding: 16px; margin-top: 30px; }
+        .instruction-title { font-size: 16px; display: flex; justify-content: space-between; cursor: pointer; }
+        .instruction-content { display: none; margin-top: 12px; }
+        .instruction-content.show { display: block; }
+        .browser-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 10px; margin-bottom: 8px; font-size: 13px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .loader { text-align: center; padding: 40px; }
+        .spinner { border: 3px solid rgba(128,128,128,0.3); border-top: 3px solid var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .footer { text-align: center; margin-top: 20px; font-size: 10px; opacity: 0.5; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--card); border-radius: 30px; padding: 24px; width: 90%; max-width: 320px; text-align: center; }
+        .modal-content input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 30px; text-align: center; font-size: 18px; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .confirm-btn { background: var(--green); color: white; border: none; padding: 10px; border-radius: 30px; cursor: pointer; }
+        .cancel-btn { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 30px; cursor: pointer; }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <div class="header">
+            <div class="logo-area"><div class="logo-img">⚽</div><div class="logo-text">MUXI FOOT</div></div>
+            <div class="theme-switch"><button class="theme-btn" data-theme="dark">🌙</button><button class="theme-btn" data-theme="light">☀️</button><button class="theme-btn" data-theme="blue">🔵</button></div>
+            <div class="balance-card">🪙 <span class="balance-amount" id="balance">1000</span></div>
+        </div>
+        <div class="daily-bonus" onclick="claimDailyBonus()">🎁 Ежедневный бонус: +50 монет</div>
+        <div class="tabs"><button class="tab-btn active" data-tab="matches">🏆 МАТЧИ</button><button class="tab-btn" data-tab="leaderboard">🏅 ЛИДЕРБОРД</button><button class="tab-btn" data-tab="history">📜 ИСТОРИЯ</button></div>
+        <div id="matchesTab" class="tab-content active"><div id="matchesList"><div class="loader"><div class="spinner"></div><div>Загрузка матчей...</div></div></div></div>
+        <div id="leaderboardTab" class="tab-content"><div id="leaderboardList"><div class="loader">Нет данных</div></div></div>
+        <div id="historyTab" class="tab-content"><div id="historyList"><div class="loader">Нет ставок</div></div></div>
+        <div class="instruction-card"><div class="instruction-title" onclick="toggleInstruction()">📱 Как добавить иконку на главный экран? <span id="instructionArrow">▼</span></div>
+        <div class="instruction-content" id="instructionContent"><div class="browser-item">🌐 Chrome: ⋮ → Установить приложение</div><div class="browser-item">🍎 Safari: ⬆️ → На экран "Домой"</div></div></div>
+        <div class="footer">⚡ MUXI FOOT — реальные матчи | Данные API-Football</div>
+    </div>
+    <div id="betModal" class="modal"><div class="modal-content"><h3 id="betMatchName"></h3><p>Ставка на: <strong id="betTeam"></strong></p><p>Коэффициент: <strong id="betOdd">2.00</strong></p><input type="number" id="betAmount" placeholder="Сумма ставки" min="10"><div class="modal-buttons"><button class="confirm-btn" onclick="placeBet()">Сделать ставку</button><button class="cancel-btn" onclick="closeModal()">Отмена</button></div></div></div>
+    <script>
+        const API_KEY = "a37a2f707d7f37fb28ce4451dcf42064";
+        
+        let balance = 1000, bets = [], currentMatches = [], selectedBet = null;
+        
+        function generateOdds() { 
+            return { 
+                home: (Math.random() * 1.5 + 1.8).toFixed(2), 
+                draw: (Math.random() * 1 + 2.5).toFixed(2), 
+                away: (Math.random() * 1.5 + 2.0).toFixed(2) 
+            }; 
         }
-        .team {
-            flex: 1;
-            text-align: center;
-            display: flex;
+        
+        async function fetchRealMatches() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`https://v3.football.api-sports.io/fixtures?date=${today}`, {
+                    method: 'GET',
+                    headers: { 'x-apisports-key': API_KEY }
+                });
+                
+                if (!response.ok) throw new Error('API error');
+                const data = await response.json();
+                const matches = data.response || [];
+                
+                if (matches.length === 0) {
+                    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+                    const tomRes = await fetch(`https://v3.football.api-sports.io/fixtures?date=${tomorrow}`, {
+                        headers: { 'x-apisports-key': API_KEY }
+                    });
+                    const tomData = await tomRes.json();
+                    return (tomData.response || []).slice(0, 30).map(m => ({ 
+                        id: m.fixture.id, league: m.league.name, home: m.teams.home.name, homeLogo: m.teams.home.logo,
+                        away: m.teams.away.name, awayLogo: m.teams.away.logo, homeScore: m.goals.home ?? 0,
+                        awayScore: m.goals.away ?? 0, status: m.fixture.status.short, elapsed: m.fixture.status.elapsed || 0,
+                        odds: generateOdds()
+                    }));
+                }
+                
+                return matches.slice(0, 30).map(m => ({ 
+                    id: m.fixture.id, league: m.league.name, home: m.teams.home.name, homeLogo: m.teams.home.logo,
+                    away: m.teams.away.name, awayLogo: m.teams.away.logo, homeScore: m.goals.home ?? 0,
+                    awayScore: m.goals.away ?? 0, status: m.fixture.status.short, elapsed: m.fixture.status.elapsed || 0,
+                    odds: generateOdds()
+                }));
+            } catch(e) { 
+                console.log('Ошибка:', e);
+                return []; 
+            }
+        }
+        
+        async function loadMatches() {
+            const container = document.getElementById('matchesList');
+            container.innerHTML = '<div class="loader"><div class="spinner"></div><div>Загрузка матчей...</div></div>';
+            currentMatches = await fetchRealMatches();
+            if(!currentMatches.length) { 
+                container.innerHTML = '<div class="loader">⚠️ Сегодня матчей нет. Загляни завтра!</div>'; 
+                return; 
+            }
+            container.innerHTML = currentMatches.map(m => { 
+                const canBet = m.status === 'NS'; 
+                const hasBet = bets.some(b => b.matchId === m.id && b.status === 'pending'); 
+                const isLive = ['1H','2H','HT'].includes(m.status); 
+                return `<div class="match-card">
+                    <div class="league">${m.league}</div>
+                    <div class="teams">
+                        <div class="team"><img class="team-logo" src="${m.homeLogo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/44/44701.png'"><div class="team-name">${m.home}</div></div>
+                        <div class="vs">VS</div>
+                        <div class="team"><img class="team-logo" src="${m.awayLogo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/44/44701.png'"><div class="team-name">${m.away}</div></div>
+                    </div>
+                    <div class="score">${m.homeScore} : ${m.awayScore}</div>
+                    <div class="status ${isLive ? 'status-live' : ''}">${isLive ? `🟢 LIVE (${m.elapsed}')` : m.status === 'FT' ? '✅ Завершён' : '⏳ Не начался'}</div>
+                    ${canBet && !hasBet ? `<div class="odds"><button class="odd-btn" onclick='openBetModal(${m.id},"Победа ${m.home}",${m.odds.home})'>🏠 ${m.home}<br>${m.odds.home}</button><button class="odd-btn" onclick='openBetModal(${m.id},"Ничья",${m.odds.draw})'>🤝 НИЧЬЯ<br>${m.odds.draw}</button><button class="odd-btn" onclick='openBetModal(${m.id},"Победа ${m.away}",${m.odds.away})'>✈️ ${m.away}<br>${m.odds.away}</button></div>` : hasBet ? '<div class="bet-info">⭐ Ставка сделана</div>' : '<div class="bet-info">🚫 Ставки недоступны</div>'}
+                </div>`; 
+            }).join('');
+        }
+        
+        function openBetModal(mid, type, odd) { 
+            const m = currentMatches.find(x => x.id === mid); 
+            if(!m || m.status !== 'NS') { alert('Нельзя поставить'); return; } 
+            selectedBet = { matchId: mid, matchName: `${m.home} vs ${m.away}`, betType: type, odd: parseFloat(odd) }; 
+            document.getElementById('betMatchName').innerText = selectedBet.matchName; 
+            document.getElementById('betTeam').innerText = type; 
+            document.getElementById('betOdd').innerText = odd; 
+            document.getElementById('betAmount').value = ''; 
+            document.getElementById('betModal').style.display = 'flex'; 
+        }
+        
+        function placeBet() { 
+            const amount = parseInt(document.getElementById('betAmount').value); 
+            if (isNaN(amount) || amount < 10) { alert("Минимум 10 монет"); return; } 
+            if (amount > balance) { alert("Не хватает монет"); return; } 
+            balance -= amount; 
+            bets.push({ matchId: selectedBet.matchId, matchName: selectedBet.matchName, betType: selectedBet.betType, odd: selectedBet.odd, amount: amount, status: 'pending', timestamp: Date.now() }); 
+            saveData(); updateBalance(); updateHistory(); closeModal(); 
+            alert(`✅ Ставка ${amount} монет принята!`); 
+        }
+        
+        function updateHistory() { 
+            const c = document.getElementById('historyList'); 
+            if(!bets.length) { c.innerHTML = '<div class="loader">Нет ставок</div>'; return; } 
+            c.innerHTML = bets.slice().reverse().map(b => `<div class="history-item ${b.status === 'win' ? 'history-win' : b.status === 'loss' ? 'history-loss' : 'history-pending'}"><div><strong>${b.matchName}</strong></div><div>🎯 ${b.betType} (кэф ${b.odd})</div><div>💰 ${b.amount} монет → ${b.status === 'win' ? '✅ Выигрыш' : b.status === 'loss' ? '❌ Проигрыш' : '⏳ Ожидание'}</div>${b.result ? `<div>${b.result}</div>` : ''}</div>`).join(''); 
+        }
+        
+        function updateLeaderboard() { 
+            let stats = {}; 
+            bets.forEach(b => { if(b.status === 'win') stats['Игрок'] = (stats['Игрок'] || 0) + Math.floor(b.amount * b.odd); }); 
+            const l = Object.entries(stats).sort((a,b)=>b[1]-a[1]); 
+            const c = document.getElementById('leaderboardList'); 
+            if(!l.length) { c.innerHTML = '<div class="loader">Сделай выигрышную ставку</div>'; return; } 
+            c.innerHTML = l.slice(0,10).map((u,i)=>`<div class="leaderboard-item"><div><span class="rank">${i+1}</span> ${u[0]}</div><div>💰 ${u[1]}</div></div>`).join(''); 
+        }
+        
+        function claimDailyBonus() { 
+            const last = localStorage.getItem('muxi_bonus'), today = new Date().toDateString(); 
+            if(last === today) { alert("Бонус уже получен"); return; } 
+            balance += 50; localStorage.setItem('muxi_bonus', today); saveData(); updateBalance(); alert("🎉 +50 монет!"); 
+        }
+        
+        function updateBalance() { document.getElementById('balance').innerText = balance; saveData(); }
+        function saveData() { localStorage.setItem('muxi_balance', balance); localStorage.setItem('muxi_bets', JSON.stringify(bets)); updateLeaderboard(); }
+        function loadData() { const b = localStorage.getItem('muxi_balance'); if(b) balance = parseInt(b); const bt = localStorage.getItem('muxi_bets'); if(bt) bets = JSON.parse(bt); updateBalance(); updateHistory(); }
+        
+        function setTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('muxi_theme', t); document.querySelectorAll('.theme-btn').forEach(btn => { if(btn.getAttribute('data-theme') === t) btn.classList.add('active'); else btn.classList.remove('active'); }); }
+        function toggleInstruction() { const c = document.getElementById('instructionContent'), a = document.getElementById('instructionArrow'); c.classList.toggle('show'); a.innerHTML = c.classList.contains('show') ? '▲' : '▼'; }
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => { 
+            btn.addEventListener('click', () => { 
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+                btn.classList.add('active'); 
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); 
+                document.getElementById(btn.dataset.tab + 'Tab').classList.add('active'); 
+                if(btn.dataset.tab === 'leaderboard') updateLeaderboard(); 
+                if(btn.dataset.tab === 'history') updateHistory(); 
+            }); 
+        });
+        
+        document.querySelectorAll('.theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.getAttribute('data-theme'))));
+        function closeModal() { document.getElementById('betModal').style.display = 'none'; }
+        window.onclick = (e) => { if(e.target === document.getElementById('betModal')) closeModal(); };
+        
+        const savedTheme = localStorage.getItem('muxi_theme') || 'dark'; 
+        setTheme(savedTheme); 
+        loadData(); 
+        loadMatches(); 
+        setInterval(loadMatches, 60000);
+    </script>
+</body>
+</html>
