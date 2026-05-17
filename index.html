@@ -8,7 +8,7 @@
     <link rel="icon" type="image/jpeg" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
     <link rel="apple-touch-icon" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
     
-    <title>MUXI FOOT ⚡ Реальные матчи с уведомлениями</title>
+    <title>MUXI FOOT ⚡ LIVE матчи</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -58,17 +58,26 @@
         .theme-btn { padding: 6px 12px; border: none; border-radius: 25px; cursor: pointer; background: transparent; color: var(--text); }
         .theme-btn.active { background: var(--accent); color: white; }
         
-        .notification-toggle {
-            background: var(--card);
-            border: 1px solid var(--accent);
-            padding: 6px 12px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 12px;
+        .status-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
         }
-        .notification-toggle.on {
-            background: var(--green);
-            border-color: var(--green);
+        .status-tab {
+            flex: 1;
+            padding: 12px;
+            background: var(--card);
+            border: 1px solid rgba(128,128,128,0.3);
+            border-radius: 30px;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .status-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
         }
         
         .match-card {
@@ -111,7 +120,10 @@
             padding: 4px;
             border-radius: 20px;
         }
-        .status-live { background: var(--accent); animation: pulse 1s infinite; }
+        .status-live { background: #e74c3c; animation: pulse 1s infinite; }
+        .status-upcoming { background: #f39c12; }
+        .status-finished { background: #27ae60; }
+        
         .instruction-card {
             background: var(--card);
             border-radius: 20px;
@@ -147,24 +159,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footer { text-align: center; margin-top: 20px; font-size: 10px; opacity: 0.5; }
         .update-badge { text-align: right; font-size: 10px; opacity: 0.5; margin-bottom: 10px; }
-        .permission-prompt {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 15px;
-            text-align: center;
-            border: 1px solid var(--accent);
-        }
-        .allow-btn {
-            background: var(--accent);
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            margin-top: 8px;
-            font-weight: bold;
-        }
+        .empty-state { text-align: center; padding: 40px; opacity: 0.6; }
     </style>
 </head>
 <body data-theme="dark">
@@ -174,19 +169,20 @@
                 <div class="logo-img"></div>
                 <div class="logo-text">MUXI FOOT</div>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div class="theme-switch">
                 <button class="theme-btn" data-theme="dark">🌙</button>
                 <button class="theme-btn" data-theme="light">☀️</button>
                 <button class="theme-btn" data-theme="blue">🔵</button>
             </div>
         </div>
         
-        <div id="notifyPermission" class="permission-prompt" style="display: none;">
-            🔔 Включи уведомления, чтобы не пропустить голы!
-            <div><button class="allow-btn" onclick="requestNotificationPermission()">✅ Включить уведомления</button></div>
-        </div>
-        
         <div class="update-badge" id="updateTime"></div>
+        
+        <div class="status-tabs">
+            <div class="status-tab live active" data-status="live">🟢 LIVE</div>
+            <div class="status-tab upcoming" data-status="upcoming">⚫ НЕ НАЧАЛСЯ</div>
+            <div class="status-tab finished" data-status="finished">✅ ЗАВЕРШЁН</div>
+        </div>
         
         <div id="matchesList">
             <div class="loader">
@@ -202,93 +198,44 @@
             <div class="instruction-content" id="instructionContent">
                 <div class="browser-item">🌐 Chrome: ⋮ → Установить приложение</div>
                 <div class="browser-item">🍎 Safari: ⬆️ → На экран "Домой"</div>
-                <div class="browser-item">🦊 Firefox: ⋮ → Добавить на главный экран</div>
             </div>
         </div>
         
-        <div class="footer">⚡ MUXI FOOT — реальные матчи | Уведомления о голах 🔔</div>
+        <div class="footer">⚡ MUXI FOOT — LIVE / Не начался / Завершён</div>
     </div>
 
     <script>
         const API_KEY = "a37a2f707d7f37fb28ce4451dcf42064";
         
-        let currentMatches = [];
-        let previousMatches = {};
-        let notificationsEnabled = false;
+        let allMatches = [];
+        let currentFilter = "live";
         
-        async function requestNotificationPermission() {
-            if ('Notification' in window) {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationsEnabled = true;
-                    localStorage.setItem('notifications_enabled', 'true');
-                    document.getElementById('notifyPermission').style.display = 'none';
-                    new Notification('🔔 MUXI FOOT', {
-                        body: 'Уведомления включены! Теперь ты узнаешь о голах первым.',
-                        icon: '487c910b-10a6-476c-b3f5-1a5763471a6c.jpg'
-                    });
-                }
+        function getMatchStatusType(match) {
+            const status = match.status;
+            if (status === '1H' || status === '2H' || status === 'HT' || status === 'LIVE') {
+                return 'live';
             }
+            if (status === 'FT' || status === 'AET' || status === 'PEN' || status === 'FINISHED') {
+                return 'finished';
+            }
+            return 'upcoming';
         }
         
-        function sendNotification(title, body, matchId) {
-            if (!notificationsEnabled) return;
-            if (document.hidden) {
-                new Notification(title, {
-                    body: body,
-                    icon: '487c910b-10a6-476c-b3f5-1a5763471a6c.jpg',
-                    tag: matchId,
-                    renotify: false
-                });
-            }
+        function getStatusText(match) {
+            const status = match.status;
+            if (status === '1H' || status === '2H') return `🟢 LIVE (${match.elapsed}')`;
+            if (status === 'HT') return `⏸️ ПЕРЕРЫВ (${match.elapsed}')`;
+            if (status === 'FT') return '✅ ЗАВЕРШЁН';
+            if (status === 'NS') return '⏳ НЕ НАЧАЛСЯ';
+            return status;
         }
         
-        function checkForUpdates(newMatches) {
-            if (Object.keys(previousMatches).length === 0) {
-                previousMatches = {};
-                newMatches.forEach(m => {
-                    previousMatches[m.id] = {
-                        status: m.status,
-                        homeScore: m.homeScore,
-                        awayScore: m.awayScore
-                    };
-                });
-                return;
+        function getMatchScore(match) {
+            // ЖЁСТКО: если статус NS — счёт 0:0, даже если API врёт
+            if (match.status === 'NS') {
+                return { home: 0, away: 0 };
             }
-            
-            newMatches.forEach(m => {
-                const old = previousMatches[m.id];
-                if (!old) {
-                    sendNotification('🆕 Новый матч', `${m.home} - ${m.away} (${m.league})`, m.id);
-                } else {
-                    if (old.homeScore !== m.homeScore || old.awayScore !== m.awayScore) {
-                        const deltaHome = m.homeScore - old.homeScore;
-                        const deltaAway = m.awayScore - old.awayScore;
-                        let goalMsg = '';
-                        if (deltaHome > 0) goalMsg = `⚽ ГОЛ! ${m.home} забивает! ${old.homeScore}→${m.homeScore}`;
-                        if (deltaAway > 0) goalMsg = `⚽ ГОЛ! ${m.away} забивает! ${old.awayScore}→${m.awayScore}`;
-                        if (goalMsg) {
-                            sendNotification('⚽ ГОЛ!', `${goalMsg}\n${m.home} ${m.homeScore}:${m.awayScore} ${m.away}`, m.id);
-                        }
-                    }
-                    
-                    if (old.status !== m.status) {
-                        if (m.status === '1H' || m.status === '2H') {
-                            if (old.status === 'NS') {
-                                sendNotification('🟢 МАТЧ НАЧАЛСЯ', `${m.home} - ${m.away}`, m.id);
-                            }
-                        } else if (m.status === 'FT') {
-                            sendNotification('🏁 МАТЧ ЗАВЕРШЁН', `${m.home} ${m.homeScore}:${m.awayScore} ${m.away}`, m.id);
-                        }
-                    }
-                }
-                
-                previousMatches[m.id] = {
-                    status: m.status,
-                    homeScore: m.homeScore,
-                    awayScore: m.awayScore
-                };
-            });
+            return { home: match.homeScore, away: match.awayScore };
         }
         
         async function fetchRealMatches() {
@@ -322,31 +269,30 @@
             }
         }
         
-        async function loadMatches() {
+        function renderMatches() {
             const container = document.getElementById('matchesList');
-            const updateSpan = document.getElementById('updateTime');
+            const filtered = allMatches.filter(m => getMatchStatusType(m) === currentFilter);
             
-            container.innerHTML = '<div class="loader"><div class="spinner"></div><div>Загрузка матчей...</div></div>';
-            
-            const now = new Date();
-            updateSpan.innerHTML = `🕐 Обновлено: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-            
-            const matches = await fetchRealMatches();
-            
-            if (!matches.length) { 
-                container.innerHTML = '<div class="loader">⚠️ Сегодня матчей нет. Загляни завтра!</div>'; 
-                return; 
+            if (filtered.length === 0) {
+                let message = '';
+                if (currentFilter === 'live') message = '🟢 Нет LIVE матчей сейчас';
+                else if (currentFilter === 'upcoming') message = '⚫ Нет запланированных матчей';
+                else message = '✅ Нет завершённых матчей';
+                container.innerHTML = `<div class="empty-state">${message}</div>`;
+                return;
             }
             
-            checkForUpdates(matches);
-            currentMatches = matches;
-            
-            container.innerHTML = matches.map(m => { 
-                const isLive = ['1H','2H','HT'].includes(m.status); 
-                const isFinished = m.status === 'FT';
-                let statusText = '⏳ Не начался';
-                if (isLive) statusText = `🟢 LIVE (${m.elapsed}')`;
-                if (isFinished) statusText = '✅ Завершён';
+            container.innerHTML = filtered.map(m => {
+                const score = getMatchScore(m);
+                const statusText = getStatusText(m);
+                const isLive = getMatchStatusType(m) === 'live';
+                const isUpcoming = getMatchStatusType(m) === 'upcoming';
+                const isFinished = getMatchStatusType(m) === 'finished';
+                
+                let statusClass = '';
+                if (isLive) statusClass = 'status-live';
+                if (isUpcoming) statusClass = 'status-upcoming';
+                if (isFinished) statusClass = 'status-finished';
                 
                 return `
                     <div class="match-card">
@@ -362,11 +308,24 @@
                                 <div class="team-name">${m.away}</div>
                             </div>
                         </div>
-                        <div class="score">${m.homeScore} : ${m.awayScore}</div>
-                        <div class="status ${isLive ? 'status-live' : ''}">${statusText}</div>
+                        <div class="score">${score.home} : ${score.away}</div>
+                        <div class="status ${statusClass}">${statusText}</div>
                     </div>
-                `; 
+                `;
             }).join('');
+        }
+        
+        async function loadMatches() {
+            const container = document.getElementById('matchesList');
+            const updateSpan = document.getElementById('updateTime');
+            
+            container.innerHTML = '<div class="loader"><div class="spinner"></div><div>Загрузка матчей...</div></div>';
+            
+            const now = new Date();
+            updateSpan.innerHTML = `🕐 Обновлено: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+            
+            allMatches = await fetchRealMatches();
+            renderMatches();
         }
         
         function setTheme(t) { 
@@ -385,24 +344,21 @@
             a.innerHTML = c.classList.contains('show') ? '▲' : '▼'; 
         }
         
-        if ('Notification' in window) {
-            const saved = localStorage.getItem('notifications_enabled');
-            if (saved === 'true') {
-                notificationsEnabled = true;
-            } else if (Notification.permission === 'granted') {
-                notificationsEnabled = true;
-                localStorage.setItem('notifications_enabled', 'true');
-            } else if (Notification.permission !== 'denied') {
-                document.getElementById('notifyPermission').style.display = 'block';
-            }
-        }
+        document.querySelectorAll('.status-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFilter = tab.getAttribute('data-status');
+                renderMatches();
+            });
+        });
         
         document.querySelectorAll('.theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.getAttribute('data-theme'))));
         
         const savedTheme = localStorage.getItem('muxi_theme') || 'dark'; 
         setTheme(savedTheme); 
         loadMatches();
-        setInterval(loadMatches, 30000);
+        setInterval(loadMatches, 60000);
     </script>
 </body>
 </html>
