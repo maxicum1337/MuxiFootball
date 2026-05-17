@@ -8,7 +8,7 @@
     <link rel="icon" type="image/jpeg" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
     <link rel="apple-touch-icon" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
     
-    <title>MUXI FOOT ⚡ LIVE матчи</title>
+    <title>MUXI FOOT ⚡ LIVE матчи с временем</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -87,7 +87,19 @@
             margin-bottom: 12px;
             border: 1px solid rgba(128,128,128,0.3);
         }
-        .league { font-size: 11px; opacity: 0.7; margin-bottom: 8px; }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .league { font-size: 11px; opacity: 0.7; }
+        .match-time {
+            font-size: 11px;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
         .teams {
             display: flex;
             justify-content: space-between;
@@ -201,7 +213,7 @@
             </div>
         </div>
         
-        <div class="footer">⚡ MUXI FOOT — LIVE / Не начался / Завершён</div>
+        <div class="footer">⚡ MUXI FOOT — время начала матчей</div>
     </div>
 
     <script>
@@ -209,6 +221,34 @@
         
         let allMatches = [];
         let currentFilter = "live";
+        
+        function formatMatchTime(dateStr, status) {
+            if (!dateStr) return 'Время неизвестно';
+            
+            const matchDate = new Date(dateStr);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const matchDay = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+            
+            const timeStr = matchDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            // Для LIVE матчей показываем минуту
+            if (status === '1H' || status === '2H' || status === 'HT') {
+                return null; // время не показываем, будет статус LIVE
+            }
+            
+            if (matchDay.getTime() === today.getTime()) {
+                return `Сегодня ${timeStr}`;
+            } else {
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                if (matchDay.getTime() === tomorrow.getTime()) {
+                    return `Завтра ${timeStr}`;
+                }
+            }
+            
+            return `${matchDate.toLocaleDateString('ru-RU')} ${timeStr}`;
+        }
         
         function getMatchStatusType(match) {
             const status = match.status;
@@ -231,7 +271,6 @@
         }
         
         function getMatchScore(match) {
-            // ЖЁСТКО: если статус NS — счёт 0:0, даже если API врёт
             if (match.status === 'NS') {
                 return { home: 0, away: 0 };
             }
@@ -261,7 +300,8 @@
                     homeScore: m.goals.home ?? 0, 
                     awayScore: m.goals.away ?? 0, 
                     status: m.fixture.status.short, 
-                    elapsed: m.fixture.status.elapsed || 0
+                    elapsed: m.fixture.status.elapsed || 0,
+                    date: m.fixture.date
                 }));
             } catch(e) { 
                 console.log('Ошибка:', e);
@@ -288,6 +328,7 @@
                 const isLive = getMatchStatusType(m) === 'live';
                 const isUpcoming = getMatchStatusType(m) === 'upcoming';
                 const isFinished = getMatchStatusType(m) === 'finished';
+                const timeStr = formatMatchTime(m.date, m.status);
                 
                 let statusClass = '';
                 if (isLive) statusClass = 'status-live';
@@ -296,7 +337,10 @@
                 
                 return `
                     <div class="match-card">
-                        <div class="league">${m.league}</div>
+                        <div class="match-header">
+                            <div class="league">${m.league}</div>
+                            ${timeStr ? `<div class="match-time">⏰ ${timeStr}</div>` : ''}
+                        </div>
                         <div class="teams">
                             <div class="team">
                                 <img class="team-logo" src="${m.homeLogo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/44/44701.png'">
