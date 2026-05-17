@@ -8,7 +8,7 @@
     <link rel="icon" type="image/jpeg" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
     <link rel="apple-touch-icon" href="487c910b-10a6-476c-b3f5-1a5763471a6c.jpg">
     
-    <title>MUXI FOOT ⚡ Реальные матчи</title>
+    <title>MUXI FOOT ⚡ Реальные матчи с уведомлениями</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -57,6 +57,19 @@
         .theme-switch { display: flex; gap: 6px; background: var(--card); padding: 5px; border-radius: 30px; }
         .theme-btn { padding: 6px 12px; border: none; border-radius: 25px; cursor: pointer; background: transparent; color: var(--text); }
         .theme-btn.active { background: var(--accent); color: white; }
+        
+        .notification-toggle {
+            background: var(--card);
+            border: 1px solid var(--accent);
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .notification-toggle.on {
+            background: var(--green);
+            border-color: var(--green);
+        }
         
         .match-card {
             background: var(--card);
@@ -134,6 +147,24 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footer { text-align: center; margin-top: 20px; font-size: 10px; opacity: 0.5; }
         .update-badge { text-align: right; font-size: 10px; opacity: 0.5; margin-bottom: 10px; }
+        .permission-prompt {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            border: 1px solid var(--accent);
+        }
+        .allow-btn {
+            background: var(--accent);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            margin-top: 8px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body data-theme="dark">
@@ -143,11 +174,16 @@
                 <div class="logo-img"></div>
                 <div class="logo-text">MUXI FOOT</div>
             </div>
-            <div class="theme-switch">
+            <div style="display: flex; gap: 8px;">
                 <button class="theme-btn" data-theme="dark">🌙</button>
                 <button class="theme-btn" data-theme="light">☀️</button>
                 <button class="theme-btn" data-theme="blue">🔵</button>
             </div>
+        </div>
+        
+        <div id="notifyPermission" class="permission-prompt" style="display: none;">
+            🔔 Включи уведомления, чтобы не пропустить голы!
+            <div><button class="allow-btn" onclick="requestNotificationPermission()">✅ Включить уведомления</button></div>
         </div>
         
         <div class="update-badge" id="updateTime"></div>
@@ -170,11 +206,90 @@
             </div>
         </div>
         
-        <div class="footer">⚡ MUXI FOOT — реальные матчи | Данные API-Football</div>
+        <div class="footer">⚡ MUXI FOOT — реальные матчи | Уведомления о голах 🔔</div>
     </div>
 
     <script>
         const API_KEY = "a37a2f707d7f37fb28ce4451dcf42064";
+        
+        let currentMatches = [];
+        let previousMatches = {};
+        let notificationsEnabled = false;
+        
+        async function requestNotificationPermission() {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    notificationsEnabled = true;
+                    localStorage.setItem('notifications_enabled', 'true');
+                    document.getElementById('notifyPermission').style.display = 'none';
+                    new Notification('🔔 MUXI FOOT', {
+                        body: 'Уведомления включены! Теперь ты узнаешь о голах первым.',
+                        icon: '487c910b-10a6-476c-b3f5-1a5763471a6c.jpg'
+                    });
+                }
+            }
+        }
+        
+        function sendNotification(title, body, matchId) {
+            if (!notificationsEnabled) return;
+            if (document.hidden) {
+                new Notification(title, {
+                    body: body,
+                    icon: '487c910b-10a6-476c-b3f5-1a5763471a6c.jpg',
+                    tag: matchId,
+                    renotify: false
+                });
+            }
+        }
+        
+        function checkForUpdates(newMatches) {
+            if (Object.keys(previousMatches).length === 0) {
+                previousMatches = {};
+                newMatches.forEach(m => {
+                    previousMatches[m.id] = {
+                        status: m.status,
+                        homeScore: m.homeScore,
+                        awayScore: m.awayScore
+                    };
+                });
+                return;
+            }
+            
+            newMatches.forEach(m => {
+                const old = previousMatches[m.id];
+                if (!old) {
+                    sendNotification('🆕 Новый матч', `${m.home} - ${m.away} (${m.league})`, m.id);
+                } else {
+                    if (old.homeScore !== m.homeScore || old.awayScore !== m.awayScore) {
+                        const deltaHome = m.homeScore - old.homeScore;
+                        const deltaAway = m.awayScore - old.awayScore;
+                        let goalMsg = '';
+                        if (deltaHome > 0) goalMsg = `⚽ ГОЛ! ${m.home} забивает! ${old.homeScore}→${m.homeScore}`;
+                        if (deltaAway > 0) goalMsg = `⚽ ГОЛ! ${m.away} забивает! ${old.awayScore}→${m.awayScore}`;
+                        if (goalMsg) {
+                            sendNotification('⚽ ГОЛ!', `${goalMsg}\n${m.home} ${m.homeScore}:${m.awayScore} ${m.away}`, m.id);
+                        }
+                    }
+                    
+                    if (old.status !== m.status) {
+                        if (m.status === '1H' || m.status === '2H') {
+                            if (old.status === 'NS') {
+                                sendNotification('🟢 МАТЧ НАЧАЛСЯ', `${m.home} - ${m.away}`, m.id);
+                            }
+                        } else if (m.status === 'FT') {
+                            sendNotification('🏁 МАТЧ ЗАВЕРШЁН', `${m.home} ${m.homeScore}:${m.awayScore} ${m.away}`, m.id);
+                        }
+                    }
+                }
+                
+                previousMatches[m.id] = {
+                    status: m.status,
+                    homeScore: m.homeScore,
+                    awayScore: m.awayScore
+                };
+            });
+        }
         
         async function fetchRealMatches() {
             try {
@@ -187,17 +302,11 @@
                 if (!response.ok) throw new Error('API error');
                 const data = await response.json();
                 
-                console.log('Найдено матчей:', data.results);
+                if (!data.response || data.response.length === 0) return [];
                 
-                if (!data.response || data.response.length === 0) {
-                    return [];
-                }
-                
-                // Берём первые 50 матчей, чтобы не перегружать
                 return data.response.slice(0, 50).map(m => ({ 
                     id: m.fixture.id, 
                     league: m.league.name, 
-                    leagueLogo: m.league.logo,
                     home: m.teams.home.name, 
                     homeLogo: m.teams.home.logo, 
                     away: m.teams.away.name, 
@@ -228,6 +337,9 @@
                 container.innerHTML = '<div class="loader">⚠️ Сегодня матчей нет. Загляни завтра!</div>'; 
                 return; 
             }
+            
+            checkForUpdates(matches);
+            currentMatches = matches;
             
             container.innerHTML = matches.map(m => { 
                 const isLive = ['1H','2H','HT'].includes(m.status); 
@@ -273,11 +385,24 @@
             a.innerHTML = c.classList.contains('show') ? '▲' : '▼'; 
         }
         
+        if ('Notification' in window) {
+            const saved = localStorage.getItem('notifications_enabled');
+            if (saved === 'true') {
+                notificationsEnabled = true;
+            } else if (Notification.permission === 'granted') {
+                notificationsEnabled = true;
+                localStorage.setItem('notifications_enabled', 'true');
+            } else if (Notification.permission !== 'denied') {
+                document.getElementById('notifyPermission').style.display = 'block';
+            }
+        }
+        
         document.querySelectorAll('.theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.getAttribute('data-theme'))));
         
         const savedTheme = localStorage.getItem('muxi_theme') || 'dark'; 
         setTheme(savedTheme); 
         loadMatches();
+        setInterval(loadMatches, 30000);
     </script>
 </body>
 </html>
